@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # usage info
 usage() {
   cat <<EOF
@@ -9,6 +10,28 @@ usage() {
     --                      End of options.
 EOF
 }
+
+VERSION=0.1
+
+# Parse options
+while [[ "$1" =~ ^- && ! "$1" == "--" ]]; do
+  case $1 in
+    -v | --version )
+      echo $version
+      exit
+      ;;
+    -h | --help )
+      usage
+      exit
+      ;;
+    * )
+      echo "abort: unknown argument" 1>&2
+      exit 1
+  esac
+  shift
+done
+
+if [[ "$1" == "--" ]]; then shift; fi
 
 function start_bash() {
   echo "Starting bash in docker container ${1}"
