@@ -2,7 +2,7 @@
 # usage info
 usage() {
   cat <<EOF
-  Usage: git recall [options]
+  Usage: git docker-bash [options]
   Options:
     id                      Container-Id to start bash in.
     -h, --help              This message.
