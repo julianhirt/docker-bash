@@ -1,7 +1,7 @@
 PREFIX = /usr/local
 BINPREFIX = "$(PREFIX)/bin"
 
-LIB=dockerbash
+LIB=docker-bash
 
 .PHONY: all install uninstall
 
