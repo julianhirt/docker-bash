@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# usage info
+usage() {
+  cat <<EOF
+  Usage: git recall [options]
+  Options:
+    id                      Container-Id to start bash in.
+    -h, --help              This message.
+    --                      End of options.
+EOF
+}
+
+function start_bash() {
+  echo "Starting bash in docker container ${1}"
+  docker exec -it ${1} /bin/bash
+}
+
+if [ "$1" ]; then
+
+  found_container="$(docker ps -q -f id=$1)"
+  if [ "$found_container" ]; then
+    echo "found container: ${found_container}"
+    start_bash $found_container
+  else
+    echo "No container found with id $1"
+    exit 1
+  fi
+
+else
+
+  index=-1
+  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q)"
+
+  docker ps |  while IFS= read -r line
+    do
+      if [ "$index" -eq -1 ]; then
+        echo "    $line"
+      else
+        echo "[$index] $line"
+      fi;
+      ((index++))
+  done
+
+  read -p "Enter container index: " container_index
+
+  if (("$container_index" < 0)) | (( "$container_index" >= "${#container_ids[@]}" )); then
+    echo "Invalid index."
+    exit 1
+  fi
+
+  start_bash ${container_ids[$container_index]}
+fi
