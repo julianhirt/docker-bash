@@ -6,12 +6,14 @@ usage() {
   Usage: git docker-bash [options]
   Options:
     id                      Container-Id to start bash in.
+    -n, --name              Use name of container to stat bash.
     -h, --help              This message.
     --                      End of options.
 EOF
 }
 
 VERSION=0.1
+name=false
 
 # Parse options
 while [[ "$1" =~ ^- && ! "$1" == "--" ]]; do
@@ -23,6 +25,9 @@ while [[ "$1" =~ ^- && ! "$1" == "--" ]]; do
     -h | --help )
       usage
       exit
+      ;;
+    -n | --name )
+      name=true
       ;;
     * )
       echo "abort: unknown argument" 1>&2
@@ -38,23 +43,11 @@ function start_bash() {
   docker exec -it ${1} /bin/bash
 }
 
-if [ "$1" ]; then
-
-  found_container="$(docker ps -q -f id=$1)"
-  if [ "$found_container" ]; then
-    echo "found container: ${found_container}"
-    start_bash $found_container
-  else
-    echo "No container found with id $1"
-    exit 1
-  fi
-
-else
-
+function choose_from_list() {
   index=-1
-  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q)"
+  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q ${1})"
 
-  docker ps |  while IFS= read -r line
+  docker ps ${1} |  while IFS= read -r line
     do
       if [ "$index" -eq -1 ]; then
         echo "    $line"
@@ -72,4 +65,32 @@ else
   fi
 
   start_bash ${container_ids[$container_index]}
+}
+
+if [ ! ${1} == '' ] & [ ${name} == false ]; then
+
+  found_container="$(docker ps -q -f id=$1)"
+  if [ "$found_container" ]; then
+    echo "found container: ${found_container}"
+    start_bash $found_container
+  else
+    echo "No container found with id $1"
+    exit 1
+  fi
+
+elif [ ${name} == true ]; then
+
+  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q -f name=${1})"
+
+  if [ "${#container_ids[@]}" == 1 ]; then
+    start_bash ${container_ids[0]}
+  else
+    echo "Found more than one match:"
+    choose_from_list "-f name=${1}"
+  fi
+
+else
+
+  choose_from_list ''
+
 fi
