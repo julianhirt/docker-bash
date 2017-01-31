@@ -45,7 +45,7 @@ function start_bash() {
 
 function choose_from_list() {
   index=-1
-  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q ${1})"
+  IFS=$'' read -r -d '' -a container_ids <<< "$(docker ps -q ${1})"
 
   docker ps ${1} |  while IFS= read -r line
     do
@@ -73,21 +73,21 @@ if [[ -n $1 && ${name} == "0" ]];  then
   if [ "$found_container" ]; then
     start_bash $found_container
   else
-    echo "\nNo container found with id $1.\n"
+    echo "No container found with id $1."
     exit 1
   fi
 
 elif [ ${name} == "1" ]; then
 
-  IFS=$'\n' read -r -d '' -a container_ids <<< "$(docker ps -q -f name=${1})"
+  IFS=$'' read -r -d '' -a container_ids <<< "$(docker ps -q -f name=${1})"
 
   if [ "${#container_ids[@]}" == 1 ]; then
     start_bash ${container_ids[0]}
   elif [ "${#container_ids[@]}" == 0 ]; then
-    echo "\nDid find any matches, here are all running containers:\n"
+    echo "Did find any matches, here are all running containers:"
     choose_from_list ''
   else
-    echo "\nFound more than one match:\n"
+    echo "Found more than one match:"
     choose_from_list "-f name=${1}"
   fi
 
