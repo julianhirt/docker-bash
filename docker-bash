@@ -39,7 +39,7 @@ done
 if [[ "$1" == "--" ]]; then shift; fi
 
 function start_bash() {
-  echo "Starting bash in docker container ${1}"
+  echo -e "Starting bash in docker container ${1}\n"
   docker exec -it ${1} /bin/bash
 }
 
@@ -60,11 +60,12 @@ function choose_from_list() {
   read -p "Enter container index: " container_index
 
   if (("$container_index" < 0)) | (( "$container_index" >= "${#container_ids[@]}" )); then
-    echo "Invalid index."
-    exit 1
-  fi
+    echo -e "Invalid index. \nChoose from the list: "
 
-  start_bash ${container_ids[$container_index]}
+    choose_from_list ''
+  else
+    start_bash ${container_ids[$container_index]}
+  fi
 }
 
 if [[ -n $1 && ${name} == "0" ]];  then
@@ -73,8 +74,8 @@ if [[ -n $1 && ${name} == "0" ]];  then
   if [ "$found_container" ]; then
     start_bash $found_container
   else
-    echo "No container found with id $1."
-    exit 1
+    echo -e "No container found with id '$1'.\n\nGo ahead and choose from the list:"
+    choose_from_list ''
   fi
 
 elif [ ${name} == "1" ]; then
@@ -84,10 +85,10 @@ elif [ ${name} == "1" ]; then
   if [ "${#container_ids[@]}" == 1 ]; then
     start_bash ${container_ids[0]}
   elif [ "${#container_ids[@]}" == 0 ]; then
-    echo "Did find any matches, here are all running containers:"
+    echo -e "Did find any matches for '${1}', here are all running containers:\n"
     choose_from_list ''
   else
-    echo "Found more than one match:"
+    echo -e "Found more than one match:\n"
     choose_from_list "-f name=${1}"
   fi
 
