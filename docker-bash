@@ -45,7 +45,7 @@ function start_bash() {
 
 function choose_from_list() {
   index=-1
-  IFS=$'' read -r -d '' -a container_ids <<< "$(docker ps -q ${1})"
+  IFS=$'\r\n' read -r -d '' -a container_ids <<< "$(docker ps -q ${1})"
 
   docker ps ${1} |  while IFS= read -r line
     do
@@ -59,12 +59,12 @@ function choose_from_list() {
 
   read -p "Enter container index: " container_index
 
-  if (("$container_index" < 0)) | (( "$container_index" >= "${#container_ids[@]}" )); then
+  if [[ ! -z ${container_ids[$container_index]} ]]; then
+    start_bash ${container_ids[$container_index]}
+  else
     echo -e "Invalid index. \nChoose from the list: "
 
     choose_from_list ''
-  else
-    start_bash ${container_ids[$container_index]}
   fi
 }
 
@@ -80,11 +80,11 @@ if [[ -n $1 && ${name} == "0" ]];  then
 
 elif [ ${name} == "1" ]; then
 
-  IFS=$'' read -r -d '' -a container_ids <<< "$(docker ps -q -f name=${1})"
-
-  if [ "${#container_ids[@]}" == 1 ]; then
+  IFS=$'\r\n' read -r -d '' -a container_ids <<< "$(docker ps -q -f name=${1})"
+  
+  if [[ "${#container_ids[@]}" == 1 ]]; then
     start_bash ${container_ids[0]}
-  elif [ "${#container_ids[@]}" == 0 ]; then
+  elif [[ "${#container_ids[@]}" == 0 ]]; then
     echo -e "Did find any matches for '${1}', here are all running containers:\n"
     choose_from_list ''
   else
